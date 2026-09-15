@@ -1,9 +1,22 @@
 /**
- * All tunables in one place. Everything here is public — this backend has no
- * secrets and needs none. The Envio endpoint + token are the same public,
- * client-embedded values the wallet already ships, so no analytics repo / .env
- * from the closed rep-score service is required.
+ * All tunables in one place. This backend reads only public Circles data via a
+ * closed analytics service is required. The Envio token is supplied via env
+ * (`ENVIO_API_TOKEN`) rather than committed — copy `.env.example` to `.env`.
  */
+
+// Load .env from the working directory if present (Node doesn't do this itself).
+// No-op on hosts that inject env vars directly (Fly / Render / DigitalOcean / etc.).
+try {
+	process.loadEnvFile();
+} catch {
+	/* no .env file — rely on ambient environment */
+}
+
+const requireEnv = (name: string): string => {
+	const v = process.env[name];
+	if (!v) throw new Error(`${name} is required — copy .env.example to .env and fill it in`);
+	return v;
+};
 
 export const config = {
 	port: Number(process.env.PORT ?? 8787),
@@ -11,7 +24,7 @@ export const config = {
 	// Public Circles HyperIndex (same one the wallet uses client-side).
 	envioEndpoint:
 		process.env.ENVIO_ENDPOINT ?? 'https://gnosis-e702590.dedicated.hyperindex.xyz/v1/graphql',
-	envioToken: process.env.ENVIO_API_TOKEN ?? 'a50c149a-ff7f-4a60-a3a9-a5830332407e',
+	envioToken: requireEnv('ENVIO_API_TOKEN'),
 
 	// Recompute the whole graph this often; requests are served from the cache in
 	// between, so per-request latency is a map lookup (see README).
