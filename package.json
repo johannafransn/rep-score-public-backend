@@ -6,7 +6,8 @@
 	"description": "Open, Sybil-resistant reputation (Trust Rank) computed from the public Circles trust graph. No secrets, no analytics service.",
 	"scripts": {
 		"start": "node src/server.ts",
-		"dev": "node --watch src/server.ts"
+		"dev": "node --watch src/server.ts",
+		"test": "node --test"
 	},
 	"engines": {
 		"node": ">=22.6"

@@ -123,10 +123,26 @@ const meta = () => ({
 	edges: cache?.edgeCount ?? 0,
 	computed_at: cache?.computedAt ?? null,
 	anchors: config.anchors.length,
+	// Explicit so callers can refuse to gate on a non-Sybil-resistant instance.
+	sybil_resistant: config.anchors.length > 0,
 });
 
 server.listen(config.port, () => {
 	console.log(`[rep] open-trust-rank listening on http://localhost:${config.port}`);
+	if (config.anchors.length === 0) {
+		console.warn(
+			'[rep] ⚠️  NO ANCHORS SET — running in UNIFORM teleport mode. This is NOT\n' +
+				'[rep] ⚠️  Sybil-resistant: dense fake rings rank above the honest median. Fine\n' +
+				'[rep] ⚠️  for a local demo; set ANCHORS=<trusted addrs,…> before gating anything.',
+		);
+	} else {
+		console.log(`[rep] anchored to ${config.anchors.length} trusted humans (Sybil-resistant mode)`);
+	}
+	console.log(
+		config.minEdgeAgeDays > 0
+			? `[rep] trust aging on: ignoring edges younger than ${config.minEdgeAgeDays}d`
+			: '[rep] trust aging off (MIN_EDGE_AGE_DAYS=0) — every edge counts',
+	);
 	console.log(`[rep] computing initial graph…`);
 	void refresh();
 	setInterval(() => void refresh(), config.refreshMs);

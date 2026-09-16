@@ -16,12 +16,16 @@ export interface TrustEdge {
 
 const PAGE = 1000;
 
+// `timestamp` is the edge's unix-second block time; `$cutoff` drops edges younger
+// than config.minEdgeAgeDays (trust aging). With aging off, cutoff = now, so only
+// edges from the current second are excluded — i.e. effectively everything counts.
 const TRUST_PAGE_QUERY = `
-	query trustEdges($limit: Int!, $afterId: String!) {
+	query trustEdges($limit: Int!, $afterId: String!, $cutoff: Int!) {
 		TrustRelation(
 			where: {
 				isMutual: { _eq: true }
 				id: { _gt: $afterId }
+				timestamp: { _lte: $cutoff }
 				truster: { avatarType: { _eq: "RegisterHuman" } }
 				trustee: { avatarType: { _eq: "RegisterHuman" } }
 			}
@@ -63,10 +67,14 @@ export const loadTrustEdges = async (): Promise<TrustEdge[]> => {
 	const seen = new Set<string>();
 	let afterId = '';
 
+	// Aging cutoff: an edge counts only if it was created at/before this instant.
+	const cutoff = Math.floor(Date.now() / 1000) - Math.max(0, config.minEdgeAgeDays) * 86400;
+
 	for (;;) {
 		const data = await gql<{ TrustRelation: TrustRow[] }>(TRUST_PAGE_QUERY, {
 			limit: PAGE,
 			afterId,
+			cutoff,
 		});
 		const rows = data.TrustRelation;
 		if (rows.length === 0) break;
