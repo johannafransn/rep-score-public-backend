@@ -25,7 +25,7 @@ export const config = {
 
 	// Public Circles HyperIndex (same one the wallet uses client-side).
 	envioEndpoint:
-		process.env.ENVIO_ENDPOINT ?? 'https://gnosis-e702590.dedicated.hyperindex.xyz/v1/graphql',
+		process.env.ENVIO_ENDPOINT ?? 'https://circles-flow-5aa1509.dedicated.hyperindex.xyz/v1/graphql',
 	// Lazy so importing config (e.g. from a unit test of the pure algorithm) doesn't
 	// require a token — it's only needed when we actually hit Envio.
 	get envioToken(): string {
